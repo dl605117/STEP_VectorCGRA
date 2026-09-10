@@ -7,7 +7,7 @@ package step_rf_ctrl_pkg;
   import uvm_pkg::*;
   `include "uvm_macros.svh"
 
-  // Arch Parameters
+  // 1. Architectural Parameters
   localparam int NUM_TILE_ROWS = 4;
   localparam int NUM_TILE_COLS = 4;
   localparam int NUM_TILES = 16;
@@ -32,11 +32,11 @@ package step_rf_ctrl_pkg;
   localparam int TID_WIDTH = $clog2(MAX_THREAD_COUNT);
   localparam int PORT_ROUTE_WIDTH = NUM_RETURNER_PORTS;
   localparam int PORT_DELAY_WIDTH = $clog2(NUM_TILES);
-  localparam int CfgMetadataType_WIDTH = 128;
-  localparam int CfgTokenizerType_WIDTH = 64;
+  localparam int CFG_METADATA_WIDTH = 128;
+  localparam int CFG_TOKENIZER_WIDTH = 64;
 
 
-  // Shared Enums
+  // 2. Shared Enums
   typedef enum logic [2:0] {
     CMD_IDLE = 3'd0,
     CMD_CONFIG = 3'd1,
@@ -44,28 +44,34 @@ package step_rf_ctrl_pkg;
   } cmd_type_e;
 
 
-  // Packed Bit-Structs
+  // 3. Packed Bit-Structs
   typedef struct packed {
-    logic [3:0] sink_id;                  // Target taker/returner port index (0 to 15)
-    logic [3:0] delay_cycles;             // Programmed delay before release (0 to 15)
+    logic [3:0] sink_id;
+    logic [3:0] delay_cycles;
   } tokenizer_sink_entry_t;
 
   typedef struct packed {
-    logic [1:0] num_active_sinks;         // Valid entries count (0 to 3)
-    tokenizer_sink_entry_t [3:0] sinks;   // Up to 4 target sinks (32 bits)
-    logic [1:0] reserved;                 // Alignment/padding
+    logic [1:0] num_active_sinks;
+    tokenizer_sink_entry_t [3:0] sinks;
+    logic [1:0] reserved;
   } step_compressed_tokenizer_cfg_t;
 
 
-  // Inclusion Files
+  // 4. File Includes (in exact dependency order)
   `include "step_tokenizer_cfg_item.sv"
   `include "step_rf_cfg_metadata_item.sv"
   `include "step_rf_data_item.sv"
+
+  `include "step_rf_directed_seq.sv"
+  `include "step_rf_random_seq.sv"
+
   `include "step_rf_ctrl_driver.sv"
   `include "step_rf_ctrl_monitor.sv"
+  `include "step_rf_ctrl_coverage.sv"
   `include "step_rf_ctrl_scoreboard.sv"
+
   `include "step_rf_ctrl_env.sv"
-  `include "step_rf_directed_seq.sv"
   `include "step_rf_base_test.sv"
+  `include "step_rf_random_test.sv"
 
 endpackage : step_rf_ctrl_pkg

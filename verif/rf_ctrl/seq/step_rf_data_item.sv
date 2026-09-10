@@ -13,6 +13,11 @@ class step_rf_data_item extends uvm_sequence_item;
   rand bit [3:0] port_idx;
   rand bit [31:0] data_payload;
 
+  // Simple bound: ensure port index stays within valid physical read ports
+  constraint c_valid_port {
+    port_idx < step_rf_ctrl_pkg::NUM_RD_PORTS;
+  }
+
   function new(string name = "step_rf_data_item");
     super.new(name);
   endfunction

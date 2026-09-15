@@ -324,11 +324,16 @@ class STEP_ControllerRTL(Component):
             s.cfg_to_rf_msg.in_pred_inv[i] @= s.load_meta.in_pred_inv[i]
             s.cfg_to_rf_msg.in_const_vals[i] @= s.load_meta.in_const_vals[i]
             s.cfg_to_rf_msg.in_pred_reset_const_en[i] @= s.load_meta.in_pred_reset_const_en[i]
+            s.cfg_to_rf_msg.reduce_rd_en[i] @= s.load_meta.reduce_rd_en[i]
+            s.cfg_to_rf_msg.reduce_rd_addr[i] @= s.load_meta.reduce_rd_addr[i]
         for i in range(num_wr_cfg_ports):
             s.cfg_to_rf_msg.out_regs[i] @= s.load_meta.out_regs[i]
             s.cfg_to_rf_msg.out_regs_val[i] @= s.load_meta.out_regs_val[i]
             s.cfg_to_rf_msg.out_pred_regs[i] @= s.load_meta.out_pred_regs[i]
             s.cfg_to_rf_msg.out_pred_regs_val[i] @= s.load_meta.out_pred_regs_val[i]
+            s.cfg_to_rf_msg.reduce_en[i] @= s.load_meta.reduce_en[i]
+            s.cfg_to_rf_msg.reduce_addr[i] @= s.load_meta.reduce_addr[i]
+        s.cfg_to_rf_msg.reduce_op @= s.load_meta.reduce_op
         for i in range(num_token_sinks):
             s.cfg_to_rf_msg.tokenizer_cfg.token_route_sink_enable[i] @= s.load_meta.tokenizer_cfg.token_route_sink_enable[i]
             s.cfg_to_tokenizer_msg.token_route_sink_enable[i] @= s.load_meta.tokenizer_cfg.token_route_sink_enable[i]

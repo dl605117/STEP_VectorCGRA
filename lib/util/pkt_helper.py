@@ -94,9 +94,10 @@ def _augment_tokenizer_routes(metadata, num_rd_ports, num_wr_ports, num_ld_ports
     ]
 
     pred_enabled = metadata.get('in_pred_en', [0] * num_rd_ports)
+    reduce_rd_enabled = metadata.get('reduce_rd_en', [0] * num_rd_ports)
     enabled_inputs = [
         idx for idx in range(num_rd_ports)
-        if metadata['in_regs_val'][idx] or pred_enabled[idx]
+        if metadata['in_regs_val'][idx] or pred_enabled[idx] or reduce_rd_enabled[idx]
     ]
     if not enabled_inputs:
         return route_lists
@@ -107,11 +108,13 @@ def _augment_tokenizer_routes(metadata, num_rd_ports, num_wr_ports, num_ld_ports
             trigger_input_idx = candidate_idx
             break
 
+    reduce_enabled = metadata.get('reduce_en', [0] * num_wr_ports)
     for wr_port_idx in range(num_wr_ports):
-        write_enabled = metadata['out_regs_val'][wr_port_idx] or metadata.get(
-            'out_pred_regs_val',
-            [0] * num_wr_ports,
-        )[wr_port_idx]
+        write_enabled = (
+            metadata['out_regs_val'][wr_port_idx]
+            or metadata.get('out_pred_regs_val', [0] * num_wr_ports)[wr_port_idx]
+            or reduce_enabled[wr_port_idx]
+        )
         if not write_enabled:
             continue
 
@@ -181,6 +184,7 @@ def generateCPUPktFromJSON(json_path):
     OperationType = mk_bits( clog2(NUM_OPTS) )
     RegAddrType = mk_bits(clog2(cgra_def['num_registers']))
     PredAddrType = mk_bits(clog2(cgra_def['num_pred_registers']))
+    ReduceAddrType = mk_bits(clog2(NUM_REDUCE_REGISTERS))
     ShiftAmountType = mk_bits( clog2(SHIFT_REGISTER_SIZE) )
     TilePortType = mk_bits( clog2(cgra_def['num_tile_inports'] + 1) ) # +1 for no connection
     TileOutType = mk_bits( cgra_def['num_tile_outports'] )
@@ -256,6 +260,11 @@ def generateCPUPktFromJSON(json_path):
         in_pred_inv = metadata.get('in_pred_inv', [0] * cgra_def['num_rd_ports'])
         in_const_vals = metadata.get('in_const_vals', [0] * cgra_def['num_rd_ports'])
         in_pred_reset_const_en = metadata.get('in_pred_reset_const_en', [0] * cgra_def['num_rd_ports'])
+        reduce_rd_en = metadata.get('reduce_rd_en', [0] * cgra_def['num_rd_ports'])
+        reduce_rd_addr = metadata.get('reduce_rd_addr', [0] * cgra_def['num_rd_ports'])
+        reduce_en = metadata.get('reduce_en', [0] * cgra_def['num_wr_ports'])
+        reduce_addr = metadata.get('reduce_addr', [0] * cgra_def['num_wr_ports'])
+        reduce_op = _resolve_opt_type(metadata.get('reduce_op', 'OPT_NAH'))
 
         if len(in_pred_regs) != cgra_def['num_rd_ports']:
             raise ValueError(
@@ -281,6 +290,26 @@ def generateCPUPktFromJSON(json_path):
             raise ValueError(
                 f"cfg_{metadata.get('cfg_id', '?')} metadata.in_pred_reset_const_en length {len(in_pred_reset_const_en)} "
                 f"does not match num_rd_ports {cgra_def['num_rd_ports']}"
+            )
+        if len(reduce_rd_en) != cgra_def['num_rd_ports']:
+            raise ValueError(
+                f"cfg_{metadata.get('cfg_id', '?')} metadata.reduce_rd_en length {len(reduce_rd_en)} "
+                f"does not match num_rd_ports {cgra_def['num_rd_ports']}"
+            )
+        if len(reduce_rd_addr) != cgra_def['num_rd_ports']:
+            raise ValueError(
+                f"cfg_{metadata.get('cfg_id', '?')} metadata.reduce_rd_addr length {len(reduce_rd_addr)} "
+                f"does not match num_rd_ports {cgra_def['num_rd_ports']}"
+            )
+        if len(reduce_en) != cgra_def['num_wr_ports']:
+            raise ValueError(
+                f"cfg_{metadata.get('cfg_id', '?')} metadata.reduce_en length {len(reduce_en)} "
+                f"does not match num_wr_ports {cgra_def['num_wr_ports']}"
+            )
+        if len(reduce_addr) != cgra_def['num_wr_ports']:
+            raise ValueError(
+                f"cfg_{metadata.get('cfg_id', '?')} metadata.reduce_addr length {len(reduce_addr)} "
+                f"does not match num_wr_ports {cgra_def['num_wr_ports']}"
             )
 
         for idx, reg in enumerate(metadata['in_regs']):
@@ -325,6 +354,11 @@ def generateCPUPktFromJSON(json_path):
             out_regs_val = [Bits1(bit) for bit in metadata['out_regs_val']],
             out_pred_regs = [PredAddrType(bit) for bit in metadata.get('out_pred_regs', [0] * cgra_def['num_wr_ports'])],
             out_pred_regs_val = [Bits1(bit) for bit in metadata.get('out_pred_regs_val', [0] * cgra_def['num_wr_ports'])],
+            reduce_en = [Bits1(bit) for bit in reduce_en],
+            reduce_op = reduce_op,
+            reduce_addr = [ReduceAddrType(bit) for bit in reduce_addr],
+            reduce_rd_en = [Bits1(bit) for bit in reduce_rd_en],
+            reduce_rd_addr = [ReduceAddrType(bit) for bit in reduce_rd_addr],
             tokenizer_cfg = cfg_tokenizer_pkt,
             cfg_id = CfgIdType(metadata['cfg_id']),
             br_id = CfgIdType(metadata['br_id']),

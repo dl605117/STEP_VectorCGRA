@@ -490,6 +490,13 @@ class STEP_CgraRTL(Component):
                 s.rf_from_fabric_msg[2*i] //= s.tile_fabric.send_west_data_port[i]
                 s.rf_from_fabric_msg[2*i + 1] //= s.tile_fabric.send_east_data_port[i]
 
+            # RF Reduce Unit Test
+            s.rf_reduce_rd_data = [ OutPort(DataType) for _ in range(NUM_REDUCE_REGISTERS) ]
+            s.rf_reduce_complete = [ OutPort(Bits1) for _ in range(NUM_REDUCE_REGISTERS) ]
+            for i in range(NUM_REDUCE_REGISTERS):
+                s.rf_reduce_rd_data[i] //= s.rf_controller.reduce_rd_data[i]
+                s.rf_reduce_complete[i] //= s.rf_controller.reduce_complete[i]
+
             # Fabric Tests
             # s.tiles_in_pred_from_rf = [ OutPort(1) for _ in range(num_tiles) ]
             # for i in range(num_tiles):

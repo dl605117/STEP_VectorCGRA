@@ -101,7 +101,7 @@ def _normalize_tokenizer_wr_routes(cpu_metadata_pkts, cgra_def):
             for sink_idx in range(num_wr_ports):
                 new_bits[sink_idx] = 0
             for wr_idx in range(num_wr_ports):
-                if not (int(meta.out_regs_val[wr_idx]) or int(meta.out_pred_regs_val[wr_idx])):
+                if not (int(meta.out_regs_val[wr_idx]) or int(meta.out_pred_regs_val[wr_idx]) or int(meta.reduce_en[wr_idx])):
                     continue
                 if old_bits[wr_idx]:
                     mapped_idx = _mapped_wr_tokenizer_idx(wr_idx)
@@ -127,7 +127,7 @@ def _validate_normalized_tokenizer_routes(cpu_metadata_pkts, cgra_def):
 
         valid_sinks = set()
         for wr_idx in range(num_wr_ports):
-            if int(meta.out_regs_val[wr_idx]) or int(meta.out_pred_regs_val[wr_idx]):
+            if int(meta.out_regs_val[wr_idx]) or int(meta.out_pred_regs_val[wr_idx]) or int(meta.reduce_en[wr_idx]):
                 valid_sinks.add(_mapped_wr_tokenizer_idx(wr_idx))
         for ld_idx in range(num_ld_ports):
             if int(meta.ld_enable[ld_idx]):
@@ -141,6 +141,7 @@ def _validate_normalized_tokenizer_routes(cpu_metadata_pkts, cgra_def):
                 int(meta.in_regs_val[rd_idx])
                 or int(meta.in_pred_en[rd_idx])
                 or int(meta.in_tid_enable[rd_idx])
+                or int(meta.reduce_rd_en[rd_idx])
             )
             if not rd_active:
                 continue
@@ -173,7 +174,7 @@ def _prune_default_dead_tokenizer_sinks(cpu_metadata_pkts, cgra_def, json_path):
 
         valid_sinks = set()
         for wr_idx in range(num_wr_ports):
-            if int(meta.out_regs_val[wr_idx]) or int(meta.out_pred_regs_val[wr_idx]):
+            if int(meta.out_regs_val[wr_idx]) or int(meta.out_pred_regs_val[wr_idx]) or int(meta.reduce_en[wr_idx]):
                 valid_sinks.add(_mapped_wr_tokenizer_idx(wr_idx))
         for ld_idx in range(num_ld_ports):
             if int(meta.ld_enable[ld_idx]):
@@ -189,6 +190,7 @@ def _prune_default_dead_tokenizer_sinks(cpu_metadata_pkts, cgra_def, json_path):
                 int(meta.in_regs_val[rd_idx])
                 or int(meta.in_pred_en[rd_idx])
                 or int(meta.in_tid_enable[rd_idx])
+                or int(meta.reduce_rd_en[rd_idx])
             ):
                 for sink_idx, bit in enumerate(bits):
                     if bit and sink_idx not in valid_sinks:

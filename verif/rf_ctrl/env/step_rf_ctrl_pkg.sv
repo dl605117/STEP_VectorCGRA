@@ -74,4 +74,7 @@ package step_rf_ctrl_pkg;
   `include "step_rf_base_test.sv"
   `include "step_rf_random_test.sv"
 
-endpackage : step_rf_ctrl_pkg
+  `include "step_rf_stim_seq.sv"
+  `include "step_rf_stim_test.sv"
+
+endpackage

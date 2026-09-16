@@ -7,8 +7,8 @@ interface step_rf_ctrl_if (input logic clk, input logic reset);
 
   import step_rf_ctrl_pkg::*;
 
-  // Config Port (Val/Rdy handshake)
-  logic ecv_cfg_val;
+  // Config Port (Valid/Ready handshake)
+  logic recv_cfg_val;
   logic recv_cfg_rdy;
   logic [CfgMetadataType_WIDTH-1:0] recv_cfg_msg;
 
@@ -141,4 +141,4 @@ interface step_rf_ctrl_if (input logic clk, input logic reset);
   endgenerate
 
 
-endinterface : step_rf_ctrl_if
+endinterface
